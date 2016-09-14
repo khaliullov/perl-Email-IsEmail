@@ -160,7 +160,8 @@ sub _unique {
 
 =head1 AUTHOR
 
-Leandr Khaliullov, C<< <leandr at cpan.org> >>
+Original PHP version Dominic Sayers C<< <dominic@sayers.cc> >>
+Perl version Leandr Khaliullov, C<< <leandr at cpan.org> >>
 
 =head1 BUGS
 
@@ -204,6 +205,7 @@ L<http://search.cpan.org/dist/Email-IsEmail/>
 
 =head1 LICENSE AND COPYRIGHT
 
+Copyright 2008-2011 Dominic Sayers.
 Copyright 2016 Leandr Khaliullov.
 
 This program is released under the following license: BSD
@@ -302,10 +304,11 @@ and obsolete forms are not allowed)
 sub IsEmail {
     my ( $email, $checkDNS, $errorlevel, $parsedata ) = @_;
 
-    $checkDNS //= 0;
+    $checkDNS   //= 0;
     $errorlevel //= -1;
-    $parsedata //= {};
-    return 0
+    $parsedata  //= {};
+
+    return !1
         unless $email;
 
     my ( $threshold, $diagnose );
@@ -315,7 +318,7 @@ sub IsEmail {
         $diagnose  = 0;
     }
     else {
-        $diagnose = 1;
+        $diagnose  = 1;
         $threshold = int $errorlevel;
     }
 
@@ -397,7 +400,7 @@ sub IsEmail {
                         $end_or_die  = 0;  # CFWS & quoted strings are OK again now we're at the beginning of an element (although they are obsolete forms)
                         $element_len = 0;
                         $element_count++;
-                        $parsedata->{Email::IsEmail::COMPONENT_LOCALPART} .= $token;
+                        $parsedata->{Email::IsEmail::COMPONENT_LOCALPART}               .= $token;
                         $atomlist->{Email::IsEmail::COMPONENT_LOCALPART}[$element_count] = '';
                     }
                     # Quoted string
@@ -407,7 +410,7 @@ sub IsEmail {
                             # If it's just one atom that is quoted then it's an RFC 5322 obsolete form
                             push @{$return_status}, ( $element_count == 0 ) ? Email::IsEmail::RFC5321_QUOTEDSTRING : Email::IsEmail::DEPREC_LOCALPART;
 
-                            $parsedata->{Email::IsEmail::COMPONENT_LOCALPART} .= $token;
+                            $parsedata->{Email::IsEmail::COMPONENT_LOCALPART}                .= $token;
                             $atomlist->{Email::IsEmail::COMPONENT_LOCALPART}[$element_count] .= $token;
                             $element_len++;
                             $end_or_die = 1;  # Quoted string must be the entire element
@@ -436,7 +439,7 @@ sub IsEmail {
                         }
 
                         push @{$context_stack}, $context;
-                        $context = Email::IsEmail::CONTEXT_FWS;
+                        $context     = Email::IsEmail::CONTEXT_FWS;
                         $token_prior = $token;
                     }
                     # @
@@ -510,13 +513,13 @@ sub IsEmail {
                             }
                         } else {
                             $context_prior = $context;
-                            my $ord = ord $token;
+                            my $ord        = ord $token;
 
                             if ( ( $ord < 33 ) || ( $ord > 126 ) || ( $ord == 10 ) ||
                                  ( index( Email::IsEmail::STRING_SPECIALS, $token ) != -1 ) ) {
                                 push @{$return_status}, Email::IsEmail::ERR_EXPECTING_ATEXT;  # Fatal error
                             }
-                            $parsedata->{Email::IsEmail::COMPONENT_LOCALPART} .= $token;
+                            $parsedata->{Email::IsEmail::COMPONENT_LOCALPART}                .= $token;
                             $atomlist->{Email::IsEmail::COMPONENT_LOCALPART}[$element_count] .= $token;
                             $element_len++;
                         }
@@ -612,11 +615,11 @@ sub IsEmail {
                             }
                         }
 
-                        $end_or_die = 0;  # CFWS is OK again now we're at the beginning of an element (although it may be obsolete CFWS)
+                        $end_or_die  = 0;  # CFWS is OK again now we're at the beginning of an element (although it may be obsolete CFWS)
                         $element_len = 0;
                         $element_count++;
                         $atomlist->{Email::IsEmail::COMPONENT_DOMAIN}[$element_count] = '';
-                        $parsedata->{Email::IsEmail::COMPONENT_DOMAIN} .= $token;
+                        $parsedata->{Email::IsEmail::COMPONENT_DOMAIN}               .= $token;
                     }
                     # Domain literal
                     when (Email::IsEmail::STRING_OPENSQBRACKET) {
@@ -625,9 +628,9 @@ sub IsEmail {
                             $element_len++;
                             push @{$context_stack}, $context;
                             $context = Email::IsEmail::COMPONENT_LITERAL;
-                            $parsedata->{Email::IsEmail::COMPONENT_DOMAIN} .= $token;
+                            $parsedata->{Email::IsEmail::COMPONENT_DOMAIN}                .= $token;
                             $atomlist->{Email::IsEmail::COMPONENT_DOMAIN}[$element_count] .= $token;
-                            $parsedata->{Email::IsEmail::COMPONENT_LITERAL} = '';
+                            $parsedata->{Email::IsEmail::COMPONENT_LITERAL}                = '';
                         }
                         else {
                             push @{$return_status}, Email::IsEmail::ERR_EXPECTING_ATEXT;  # Fatal error
@@ -653,7 +656,7 @@ sub IsEmail {
                         }
 
                         push @{$context_stack}, $context;
-                        $context = Email::IsEmail::CONTEXT_FWS;
+                        $context     = Email::IsEmail::CONTEXT_FWS;
                         $token_prior = $token;
                     }
                     # atext
@@ -696,7 +699,7 @@ sub IsEmail {
                             }
                         }
 
-                        my $ord = ord $token;
+                        my $ord      = ord $token;
                         $hyphen_flag = 0;  # Assume this token isn't a hyphen unless we discover it is
 
                         if ( ( $ord < 33 ) || ( $ord > 126 ) ||
@@ -715,7 +718,7 @@ sub IsEmail {
                             push @{$return_status}, Email::IsEmail::RFC5322_DOMAIN;
                         }
 
-                        $parsedata->{Email::IsEmail::COMPONENT_DOMAIN} .= $token;
+                        $parsedata->{Email::IsEmail::COMPONENT_DOMAIN}                .= $token;
                         $atomlist->{Email::IsEmail::COMPONENT_DOMAIN}[$element_count] .= $token;
                         $element_len++;
                     }
@@ -806,9 +809,9 @@ sub IsEmail {
                             }
                             else {
                                 my $IPv6 = substr $addressliteral, 5;
-                                $matchesIP = [ split Email::IsEmail::STRING_COLON, $IPv6 ];  # Revision 2.7: Daniel Marschall's new IPv6 testing strategy
+                                $matchesIP     = [ split Email::IsEmail::STRING_COLON, $IPv6 ];  # Revision 2.7: Daniel Marschall's new IPv6 testing strategy
                                 my $groupCount = scalar @{$matchesIP};
-                                my $index = index $IPv6, Email::IsEmail::STRING_DOUBLECOLON;
+                                my $index      = index $IPv6, Email::IsEmail::STRING_DOUBLECOLON;
 
                                 if ( $index == -1 ) {
                                     # We need exactly the right number of groups
@@ -855,11 +858,11 @@ sub IsEmail {
                             push @{$return_status}, Email::IsEmail::RFC5322_DOMAINLITERAL;
                         }
 
-                        $parsedata->{Email::IsEmail::COMPONENT_DOMAIN} .= $token;
+                        $parsedata->{Email::IsEmail::COMPONENT_DOMAIN}                .= $token;
                         $atomlist->{Email::IsEmail::COMPONENT_DOMAIN}[$element_count] .= $token;
                         $element_len++;
                         $context_prior = $context;
-                        $context = pop @{$context_stack};
+                        $context       = pop @{$context_stack};
                     }
                     when (Email::IsEmail::STRING_BACKSLASH) {
                         push @{$return_status}, Email::IsEmail::RFC5322_DOMLIT_OBSDTEXT;
@@ -879,7 +882,7 @@ sub IsEmail {
 
                         push @{$return_status}, Email::IsEmail::CFWS_FWS;
                         push @{$context_stack}, $context;
-                        $context = Email::IsEmail::CONTEXT_FWS;
+                        $context     = Email::IsEmail::CONTEXT_FWS;
                         $token_prior = $token;
                     }
                     # dtext
@@ -908,8 +911,8 @@ sub IsEmail {
                             push @{$return_status}, Email::IsEmail::RFC5322_DOMLIT_OBSDTEXT;
                         }
 
-                        $parsedata->{Email::IsEmail::COMPONENT_LITERAL} .= $token;
-                        $parsedata->{Email::IsEmail::COMPONENT_DOMAIN} .= $token;
+                        $parsedata->{Email::IsEmail::COMPONENT_LITERAL}               .= $token;
+                        $parsedata->{Email::IsEmail::COMPONENT_DOMAIN}                .= $token;
                         $atomlist->{Email::IsEmail::COMPONENT_DOMAIN}[$element_count] .= $token;
                         $element_len++;
                     }
@@ -951,7 +954,7 @@ sub IsEmail {
                         # http://tools.ietf.org/html/rfc5322#section-3.2.4
                         #   the CRLF in any FWS/CFWS that appears within the quoted-string [is]
                         #   semantically "invisible" and therefore not part of the quoted-string
-                        $parsedata->{Email::IsEmail::COMPONENT_LOCALPART} .= Email::IsEmail::STRING_SP;
+                        $parsedata->{Email::IsEmail::COMPONENT_LOCALPART}                .= Email::IsEmail::STRING_SP;
                         $atomlist->{Email::IsEmail::COMPONENT_LOCALPART}[$element_count] .= Email::IsEmail::STRING_SP;
                         $element_len++;
 
@@ -962,11 +965,11 @@ sub IsEmail {
                     }
                     # End of quoted string
                     when (Email::IsEmail::STRING_DQUOTE) {
-                        $parsedata->{Email::IsEmail::COMPONENT_LOCALPART} .= $token;
+                        $parsedata->{Email::IsEmail::COMPONENT_LOCALPART}                .= $token;
                         $atomlist->{Email::IsEmail::COMPONENT_LOCALPART}[$element_count] .= $token;
                         $element_len++;
                         $context_prior = $context;
-                        $context = pop @{$context_stack};
+                        $context       = pop @{$context_stack};
                     }
                     # qtext
                     default {
@@ -992,7 +995,7 @@ sub IsEmail {
                             push @{$return_status}, Email::IsEmail::DEPREC_QTEXT;
                         }
 
-                        $parsedata->{Email::IsEmail::COMPONENT_LOCALPART} .= $token;
+                        $parsedata->{Email::IsEmail::COMPONENT_LOCALPART}                .= $token;
                         $atomlist->{Email::IsEmail::COMPONENT_LOCALPART}[$element_count] .= $token;
                         $element_len++;
                     }
@@ -1042,18 +1045,18 @@ sub IsEmail {
                 #   form that uses the minimum quoting possible.
 # TODO: check whether the character needs to be quoted (escaped) in this context
                 $context_prior = $context;
-                $context = pop @{$context_stack};  # End of qpair
-                $token = Email::IsEmail::STRING_BACKSLASH . $token;
+                $context       = pop @{$context_stack};  # End of qpair
+                $token         = Email::IsEmail::STRING_BACKSLASH . $token;
 
                 given($context) {
                     when (Email::IsEmail::CONTEXT_COMMENT) {}
                     when (Email::IsEmail::CONTEXT_QUOTEDSTRING) {
-                        $parsedata->{Email::IsEmail::COMPONENT_LOCALPART} .= $token;
+                        $parsedata->{Email::IsEmail::COMPONENT_LOCALPART}                .= $token;
                         $atomlist->{Email::IsEmail::COMPONENT_LOCALPART}[$element_count] .= $token;
                         $element_len += 2;  # The maximum sizes specified by RFC 5321 are octet counts, so we must include the backslash
                     }
                     when (Email::IsEmail::COMPONENT_LITERAL) {
-                        $parsedata->{Email::IsEmail::COMPONENT_DOMAIN} .= $token;
+                        $parsedata->{Email::IsEmail::COMPONENT_DOMAIN}                .= $token;
                         $atomlist->{Email::IsEmail::COMPONENT_DOMAIN}[$element_count] .= $token;
                         $element_len += 2;  # The maximum sizes specified by RFC 5321 are octet counts, so we must include the backslash
                     }
@@ -1080,7 +1083,7 @@ sub IsEmail {
                     # End of comment
                     when (Email::IsEmail::STRING_CLOSEPARENTHESIS) {
                         $context_prior = $context;
-                        $context = pop $context_stack;
+                        $context       = pop $context_stack;
 
                         # http://tools.ietf.org/html/rfc5322#section-3.2.2
                         #   Runs of FWS, comment, or CFWS that occur between lexical tokens in a
@@ -1117,7 +1120,7 @@ sub IsEmail {
                         push @{$return_status}, Email::IsEmail::CFWS_FWS;
 
                         push @{$context_stack}, $context;
-                        $context = Email::IsEmail::CONTEXT_FWS;
+                        $context     = Email::IsEmail::CONTEXT_FWS;
                         $token_prior = $token;
                     }
                     # ctext
@@ -1371,13 +1374,13 @@ sub IsEmail {
             push @{$return_status}, Email::IsEmail::RFC5321_TLD;
         }
 
-        if ( looks_like_number(substr( $atomlist->{Email::IsEmail::COMPONENT_DOMAIN}[$element_count], 0, 1 ) ) ) {
+        if (looks_like_number(substr( $atomlist->{Email::IsEmail::COMPONENT_DOMAIN}[$element_count], 0, 1 ))) {
             push @{$return_status}, Email::IsEmail::RFC5321_TLDNUMERIC;
         }
     }
 
-    $return_status = Email::IsEmail::_unique($return_status);
-    my $final_status  = Email::IsEmail::_max($return_status);
+    $return_status   = Email::IsEmail::_unique($return_status);
+    my $final_status = Email::IsEmail::_max($return_status);
 
     if ( scalar @{$return_status} != 1 ) {
         shift @{$return_status};  # remove redundant Email::IsEmail::VALID
