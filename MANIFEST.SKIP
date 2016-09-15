@@ -4,6 +4,9 @@
 # dist files
 ^Email-IsEmail-\d
 
+# cpanfile.snapshot
+^cpanfile.snapshot$
+
 # RPM
 ^perl-Email-IsEmail-\d
 

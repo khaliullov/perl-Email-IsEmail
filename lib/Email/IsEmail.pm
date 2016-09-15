@@ -1,8 +1,18 @@
 package Email::IsEmail;
 
-use 5.006;
-use strict;
+use v5.10;
+use strict qw(subs vars);
+*{'Email::IsEmail'} = \&IsEmail;  # add short alias Email::IsEmail
+use strict 'refs';
 use warnings;
+
+use Scalar::Util qw(looks_like_number);
+
+our ( @ISA, @EXPORT_OK, %EXPORT_TAGS, $VERSION );
+
+@ISA = qw(Exporter);
+@EXPORT_OK = qw(IsEmail);
+%EXPORT_TAGS = ( all => [ @EXPORT_OK ] ) ;
 
 =head1 NAME
 
@@ -14,7 +24,8 @@ Version 3.04.1
 
 =cut
 
-our $VERSION = '3.04.1';
+$VERSION = '3.04.1';
+
 
 =head1 SYNOPSIS
 
@@ -27,7 +38,9 @@ Example usage:
     my $valid = Email::IsEmail('test@example.org');
     ...
 
-=head1 CONSTANTS
+=cut
+
+=head1 SUBROUTINES/METHODS
 
 =cut
 
@@ -134,143 +147,6 @@ use constant STRING_IPV6TAG => 'IPv6:';
 # US-ASCII visible characters not valid for atext (http://tools.ietf.org/html/rfc5322#section-3.2.3)
 use constant STRING_SPECIALS => '()<>[]:;@\\,."';
 
-
-sub _max {
-    my ( $array_ref ) = @_;
-
-    my $res = VALID;
-
-    foreach my $val ( @{$array_ref} ) {
-        if ( $val > $res ) {
-            $res = $val;
-        }
-    }
-
-    return $res;
-}
-
-
-sub _unique {
-    my ( $array_ref ) = @_;
-
-    my %seen;
-
-    return [ grep !$seen{$_}++, @{$array_ref} ];
-}
-
-=head1 AUTHOR
-
-Original PHP version Dominic Sayers C<< <dominic@sayers.cc> >>
-Perl version Leandr Khaliullov, C<< <leandr at cpan.org> >>
-
-=head1 BUGS
-
-Please report any bugs or feature requests to C<bug-email-isemail at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Email-IsEmail>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc Email::IsEmail
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker (report bugs here)
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Email-IsEmail>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Email-IsEmail>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Email-IsEmail>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Email-IsEmail/>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
-
-
-=head1 LICENSE AND COPYRIGHT
-
-Copyright 2008-2011 Dominic Sayers.
-Copyright 2016 Leandr Khaliullov.
-
-This program is released under the following license: BSD
-
-
-=cut
-
-1; # End of Email::IsEmail
-
-package Email;
-
-use 5.006;
-use strict;
-use warnings;
-
-use feature "switch";
-
-use Scalar::Util qw(looks_like_number);
-
-=encoding utf8
-
-=head1 COPYRIGHT
-
-To validate an email address according to RFCs 5321, 5322 and others
-
-Copyright © 2008-2011, Dominic Sayers
-Test schema documentation Copyright © 2011, Daniel Marschall
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    - Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    - Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-    - Neither the name of Dominic Sayers nor the names of its contributors may be
-      used to endorse or promote products derived from this software without
-      specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-@package	Email::IsEmail
-@author	Dominic Sayers <dominic@sayers.cc>
-@copyright	2008-2011 Dominic Sayers
-@license	http://www.opensource.org/licenses/bsd-license.php BSD License
-@link	http://www.dominicsayers.com/isemail
-@version	3.04.1 - Changed my link to http://isemail.info throughout
-
-The quality of this code has been improved greatly by using PHPLint
-Copyright (c) 2010 Umberto Salsi
-This is free software; see the license for copying conditions.
-More info: http://www.icosaedro.it/phplint/
-
-=head1 SUBROUTINES/METHODS
 
 =head2 IsEmail
 
@@ -1398,4 +1274,114 @@ sub IsEmail {
     return ($diagnose) ? $final_status : ( $final_status < Email::IsEmail::THRESHOLD );
 }
 
-1; # End of Email
+sub _max {
+    my ( $array_ref ) = @_;
+
+    my $res = VALID;
+
+    foreach my $val ( @{$array_ref} ) {
+        if ( $val > $res ) {
+            $res = $val;
+        }
+    }
+
+    return $res;
+}
+
+
+sub _unique {
+    my ( $array_ref ) = @_;
+
+    my %seen;
+
+    return [ grep !$seen{$_}++, @{$array_ref} ];
+}
+
+
+=head1 AUTHOR
+
+Original PHP version Dominic Sayers C<< <dominic@sayers.cc> >>
+Perl version Leandr Khaliullov, C<< <leandr at cpan.org> >>
+
+=encoding utf8
+
+=head1 COPYRIGHT
+
+
+=head1 BUGS
+
+Please report any bugs or feature requests to C<bug-email-isemail at rt.cpan.org>, or through
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Email-IsEmail>.  I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
+
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Email::IsEmail
+
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker (report bugs here)
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Email-IsEmail>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Email-IsEmail>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Email-IsEmail>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Email-IsEmail/>
+
+=back
+
+
+=head1 ACKNOWLEDGEMENTS
+
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright © 2008-2011, Dominic Sayers.
+Test schema documentation Copyright © 2011, Daniel Marschall.
+Copyright 2016 Leandr Khaliullov.
+
+All rights reserved.
+
+This program is released under the following license: BSD
+http://www.opensource.org/licenses/bsd-license.php BSD License
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+    - Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+    - Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+    - Neither the name of Dominic Sayers nor the names of its contributors may be
+      used to endorse or promote products derived from this software without
+      specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+=cut
+
+1; # End of Email::IsEmail
