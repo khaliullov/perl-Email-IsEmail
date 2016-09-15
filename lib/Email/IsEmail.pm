@@ -1296,7 +1296,7 @@ sub IsEmail {
     # Check DNS?
     my $dns_checked = 0;
 
-    if ( $checkDNS && ( Email::IsEmail::_max($return_status) < Email::IsEmail::DNSWARN ) ) {  # && function_exists('dns_get_record')) {
+    if ( $checkDNS && ( Email::IsEmail::_max($return_status) < Email::IsEmail::DNSWARN ) ) {
         # http://tools.ietf.org/html/rfc5321#section-2.3.5
         #   Names that can
         #   be resolved to MX RRs or address (i.e., A or AAAA) RRs (as discussed
@@ -1314,26 +1314,29 @@ sub IsEmail {
         # sufficient evidence of the domain's existence. For performance reasons
         # we will not repeat the DNS lookup for the CNAME's target, but we will
         # raise a warning because we didn't immediately find an MX record.
-        if ( $element_count == 0 ) {
+        eval { require Net::DNS }
+            unless $INC{'Net/DNS.pm'};
+        if ( $INC{'Net/DNS.pm'} ) {
+            my $domain = $parsedata->{Email::IsEmail::COMPONENT_DOMAIN};
+            if ( $element_count == 0 ) {
+                $domain .= '.';  # Checking TLD DNS seems to work only if you explicitly check from the root
+            }
 
-=for comment
-            $parsedata->{Email::IsEmail::COMPONENT_DOMAIN} .= '.';  # Checking TLD DNS seems to work only if you explicitly check from the root
+            my @domains = Net::DNS::rr( $domain, 'MX' );
 
-            my $result = @dns_get_record( $parsedata->{Email::IsEmail::COMPONENT_DOMAIN}, DNS_MX );  # Not using checkdnsrr because of a suspected bug in PHP 5.3 (http://bugs.php.net/bug.php?id=51844)
+            if ( scalar @domains == 0 ) {
+                push @{$return_status}, Email::IsEmail::DNSWARN_NO_MX_RECORD;  # MX-record for domain can't be found
 
-            if ((is_bool($result) && !(bool) $result)) {
-                $return_status[] = Email::IsEmail::DNSWARN_NO_RECORD;  # Domain can't be found in DNS
+# TODO: check also AAAA and CNAME
+                @domains = Net::DNS::rr( $domain, 'A' );
+
+                if ( scalar @domains == 0 ) {
+                    push @{$return_status}, Email::IsEmail::DNSWARN_NO_RECORD;  # No usable records for the domain can be found
+                }
             }
             else {
-                if (count($result) == 0) {
-                    $return_status[] = Email::IsEmail::DNSWARN_NO_MX_RECORD;  # MX-record for domain can't be found
-                    $result = @dns_get_record($parsedata->{Email::IsEmail::COMPONENT_DOMAIN}, DNS_A + DNS_CNAME);
-
-                    if (count($result) === 0)
-                        $return_status[] = Email::IsEmail::DNSWARN_NO_RECORD;  # No usable records for the domain can be found
-                    } else $dns_checked = true;
+                $dns_checked = 1;
             }
-=cut
         }
     }
 
