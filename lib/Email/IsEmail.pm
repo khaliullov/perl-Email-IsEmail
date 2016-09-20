@@ -20,11 +20,11 @@ Email::IsEmail - Checks an email address against the following RFCs: 3696, 1123,
 
 =head1 VERSION
 
-Version 3.04.1
+Version 3.04.2
 
 =cut
 
-$VERSION = '3.04.1';
+$VERSION = '3.04.2';
 
 
 =head1 SYNOPSIS
@@ -37,10 +37,18 @@ Example usage:
 
     my $valid = Email::IsEmail('test@example.org');
     ...
+    my $checkDNS = 0;
+    my $error_level = -1;  # use dafault error threshold
+    my %parse_data = ();
+    $valid = Email::IsEmail( 'test@[127.0.0.1]', $checkDNS, $error_level,
+        \%parse_data
+    );
+    print "Local-part: ", $parse_data{Email::IsEmail::COMPONENT_LOCALPART}, "\n";
+    print "Domain: ", $parse_data{Email::IsEmail::COMPONENT_DOMAIN}, "\n";
 
 =cut
 
-=head1 SUBROUTINES/METHODS
+=head1 FUNCTIONS
 
 =cut
 
@@ -148,7 +156,9 @@ use constant STRING_IPV6TAG => 'IPv6:';
 use constant STRING_SPECIALS => '()<>[]:;@\\,."';
 
 
-=head2 IsEmail
+=item B<IsEmail>
+
+  my $valid = Email::IsEmail( $email, $checkDNS, $errorlevel, $parsedata );
 
 Check that an email address conforms to RFCs 5321, 5322 and others
 
@@ -158,22 +168,22 @@ on the context, either can be regarded as a valid email address. The
 RFC 5321 Mailbox specification is more restrictive (comments, white space
 and obsolete forms are not allowed)
 
-@param string   $email          The email address to check
-@param boolean  $checkDNS       If true then a DNS check for MX records will be made
-@param int      $errorlevel     Determines the boundary between valid and invalid addresses.
-                                Status codes above this number will be returned as-is,
-                                status codes below will be returned as Email::IsEmail::VALID. Thus the
-                                calling program can simply look for Email::IsEmail::VALID if it is
-                                only interested in whether an address is valid or not. The
-                                errorlevel will determine how "picky" Email::IsEmail() is about
-                                the address.
+    @param string   $email          The email address to check
+    @param boolean  $checkDNS       If true then a DNS check for MX records will be made
+    @param int      $errorlevel     Determines the boundary between valid and invalid addresses.
+                                    Status codes above this number will be returned as-is,
+                                    status codes below will be returned as Email::IsEmail::VALID. Thus the
+                                    calling program can simply look for Email::IsEmail::VALID if it is
+                                    only interested in whether an address is valid or not. The
+                                    errorlevel will determine how "picky" Email::IsEmail() is about
+                                    the address.
 
-                                If omitted or passed as -1 then Email::IsEmail() will return
-                                true or false rather than an integer error or warning.
+                                    If omitted or passed as -1 then Email::IsEmail() will return
+                                    true or false rather than an integer error or warning.
 
-                                NB Note the difference between $errorlevel = -1 and
-                                $errorlevel = 0
-@param array    $parsedata      If passed, returns the parsed address components
+                                    NB Note the difference between $errorlevel = -1 and
+                                    $errorlevel = 0
+    @param array    $parsedata      If passed, returns the parsed address components
 
 =cut
 
@@ -959,7 +969,7 @@ sub IsEmail {
                     # End of comment
                     when (Email::IsEmail::STRING_CLOSEPARENTHESIS) {
                         $context_prior = $context;
-                        $context       = pop $context_stack;
+                        $context       = pop @{$context_stack};
 
                         # http://tools.ietf.org/html/rfc5322#section-3.2.2
                         #   Runs of FWS, comment, or CFWS that occur between lexical tokens in a
@@ -1072,7 +1082,7 @@ sub IsEmail {
 
                         $crlf_count    = 0;
                         $context_prior = $context;
-                        $context       = pop $context_stack;  # End of FWS
+                        $context       = pop @{$context_stack};  # End of FWS
 
                         # http://tools.ietf.org/html/rfc5322#section-3.2.2
                         #   Runs of FWS, comment, or CFWS that occur between lexical tokens in a
@@ -1301,12 +1311,19 @@ sub _unique {
 =head1 AUTHOR
 
 Original PHP version Dominic Sayers C<< <dominic@sayers.cc> >>
-Perl version Leandr Khaliullov, C<< <leandr at cpan.org> >>
+
+Perl port Leandr Khaliullov, C<< <leandr at cpan.org> >>
 
 =encoding utf8
 
 =head1 COPYRIGHT
 
+Copyright © 2008-2011, Dominic Sayers.
+
+Copyright 2016 Leandr Khaliullov.
+
+
+All rights reserved.
 
 =head1 BUGS
 
@@ -1347,17 +1364,15 @@ L<http://search.cpan.org/dist/Email-IsEmail/>
 
 =head1 ACKNOWLEDGEMENTS
 
+    - Dominic Sayers (original PHP version of is_email)
+    - Daniel Marschall (test schemas)
+    - Umberto Salsi (PHPLint)
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright © 2008-2011, Dominic Sayers.
-Test schema documentation Copyright © 2011, Daniel Marschall.
-Copyright 2016 Leandr Khaliullov.
-
-All rights reserved.
-
 This program is released under the following license: BSD
-http://www.opensource.org/licenses/bsd-license.php BSD License
+
+See F<http://www.opensource.org/licenses/bsd-license.php>
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
