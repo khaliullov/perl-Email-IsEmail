@@ -20,11 +20,11 @@ Email::IsEmail - Checks an email address against the following RFCs: 3696, 1123,
 
 =head1 VERSION
 
-Version 3.04.2
+Version 3.04.3
 
 =cut
 
-$VERSION = '3.04.2';
+$VERSION = '3.04.3';
 
 
 =head1 SYNOPSIS
@@ -33,16 +33,14 @@ Checks an email address against the following RFCs: 3696, 1123, 4291, 5321, 5322
 
 Example usage:
 
-    use Email::IsEmail;
+    use Email::IsEmail qw/IsEmail/;
 
     my $valid = Email::IsEmail('test@example.org');
     ...
     my $checkDNS = 0;
     my $error_level = -1;  # use dafault error threshold
     my %parse_data = ();
-    $valid = Email::IsEmail( 'test@[127.0.0.1]', $checkDNS, $error_level,
-        \%parse_data
-    );
+    $valid = IsEmail( 'test@[127.0.0.1]', $checkDNS, $error_level \%parse_data );
     print "Local-part: ", $parse_data{Email::IsEmail::COMPONENT_LOCALPART}, "\n";
     print "Domain: ", $parse_data{Email::IsEmail::COMPONENT_DOMAIN}, "\n";
 
@@ -156,6 +154,8 @@ use constant STRING_IPV6TAG => 'IPv6:';
 use constant STRING_SPECIALS => '()<>[]:;@\\,."';
 
 
+=over 4
+
 =item B<IsEmail>
 
   my $valid = Email::IsEmail( $email, $checkDNS, $errorlevel, $parsedata );
@@ -184,6 +184,8 @@ and obsolete forms are not allowed)
                                     NB Note the difference between $errorlevel = -1 and
                                     $errorlevel = 0
     @param array    $parsedata      If passed, returns the parsed address components
+
+=back
 
 =cut
 
@@ -311,9 +313,9 @@ sub IsEmail {
                     when ([ Email::IsEmail::STRING_CR,
                             Email::IsEmail::STRING_SP,
                             Email::IsEmail::STRING_HTAB, ]) {
-                        if ( ( $token eq Email::IsEmail::STRING_CR ) && (
-                             ( ++$i == $raw_length ) ||
-                             ( substr( $email, $i, 1 ) ne Email::IsEmail::STRING_LF ) ) ) {
+                        if ( ( $token eq Email::IsEmail::STRING_CR ) and
+                             ( ( ++$i == $raw_length ) or
+                               ( substr( $email, $i, 1 ) ne Email::IsEmail::STRING_LF ) ) ) {
                             push @{$return_status}, Email::IsEmail::ERR_CR_NO_LF;
                             break;
                         }  # Fatal error
@@ -357,7 +359,7 @@ sub IsEmail {
                         #    particular behavior is acceptable or even useful, but the full
                         #    implications should be understood and the case carefully weighed
                         #    before implementing any behavior described with this label.
-                        elsif ( ( $context_prior == Email::IsEmail::CONTEXT_COMMENT ) ||
+                        elsif ( ( $context_prior == Email::IsEmail::CONTEXT_COMMENT ) or
                                 ( $context_prior == Email::IsEmail::CONTEXT_FWS ) ) {
                             push @{$return_status}, Email::IsEmail::DEPREC_CFWS_NEAR_AT;
                         }
@@ -401,7 +403,7 @@ sub IsEmail {
                             $context_prior = $context;
                             my $ord        = ord $token;
 
-                            if ( ( $ord < 33 ) || ( $ord > 126 ) || ( $ord == 10 ) ||
+                            if ( ( $ord < 33 ) or ( $ord > 126 ) or ( $ord == 10 ) or
                                  ( index( Email::IsEmail::STRING_SPECIALS, $token ) != -1 ) ) {
                                 push @{$return_status}, Email::IsEmail::ERR_EXPECTING_ATEXT;  # Fatal error
                             }
@@ -526,8 +528,8 @@ sub IsEmail {
                     when ([ Email::IsEmail::STRING_CR,
                             Email::IsEmail::STRING_SP,
                             Email::IsEmail::STRING_HTAB ]) {
-                        if ( ( $token eq Email::IsEmail::STRING_CR ) &&
-                             ( ( ++$i == $raw_length ) ||
+                        if ( ( $token eq Email::IsEmail::STRING_CR ) and
+                             ( ( ++$i == $raw_length ) or
                                ( substr( $email, $i, 1 ) ne Email::IsEmail::STRING_LF ) ) ) {
                             push @{$return_status}, Email::IsEmail::ERR_CR_NO_LF;
                             break;
@@ -588,7 +590,7 @@ sub IsEmail {
                         my $ord      = ord $token;
                         $hyphen_flag = 0;  # Assume this token isn't a hyphen unless we discover it is
 
-                        if ( ( $ord < 33 ) || ( $ord > 126 ) ||
+                        if ( ( $ord < 33 ) or ( $ord > 126 ) or
                              ( index( Email::IsEmail::STRING_SPECIALS, $token ) ) != -1 ) {
                             push @{$return_status}, Email::IsEmail::ERR_EXPECTING_ATEXT;  # Fatal error
                         }
@@ -599,7 +601,7 @@ sub IsEmail {
                             }
 
                             $hyphen_flag = 1;
-                        } elsif ( !( ( $ord > 47 && $ord < 58 ) || ( $ord > 64 && $ord < 91 ) || ( $ord > 96 && $ord < 123 ) ) ) {
+                        } elsif ( !( ( $ord > 47 and $ord < 58 ) or ( $ord > 64 and $ord < 91 ) or ( $ord > 96 and $ord < 123 ) ) ) {
                             # Not an RFC 5321 subdomain, but still OK by RFC 5322
                             push @{$return_status}, Email::IsEmail::RFC5322_DOMAIN;
                         }
@@ -679,10 +681,10 @@ sub IsEmail {
                             my $addressliteral = $parsedata->{Email::IsEmail::COMPONENT_LITERAL};
 
                             # Extract IPv4 part from the end of the address-literal (if there is one)
-                            if ( @{$matchesIP} = $addressliteral =~ /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/ ) {
+                            if ( @{$matchesIP} = $addressliteral =~ /\b((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))$/ ) {
                                 $index = index( $addressliteral, $matchesIP->[0] );
                                 if ( $index > 0 ) {
-                                    $addressliteral = substr( $addressliteral, 0, $index ) . '0:0';  # Convert IPv4 part to IPv6 format for further testing
+                                    $addressliteral = substr( $addressliteral, 0x0, $index ) . '0:0';  # Convert IPv4 part to IPv6 format for further testing
                                 }
                             }
 
@@ -690,7 +692,7 @@ sub IsEmail {
                                 # Nothing there except a valid IPv4 address, so...
                                 push @{$return_status}, Email::IsEmail::RFC5321_ADDRESSLITERAL;
                             }
-                            elsif ( substr( $addressliteral, 0, length(Email::IsEmail::STRING_IPV6TAG) ) ne Email::IsEmail::STRING_IPV6TAG ) {
+                            elsif ( substr( $addressliteral, 0x0, length(Email::IsEmail::STRING_IPV6TAG) ) ne Email::IsEmail::STRING_IPV6TAG ) {
                                 push @{$return_status}, Email::IsEmail::RFC5322_DOMAINLITERAL;
                             }
                             else {
@@ -704,39 +706,39 @@ sub IsEmail {
                                     if ( $groupCount != $max_groups ) {
                                         push @{$return_status}, Email::IsEmail::RFC5322_IPV6_GRPCOUNT;
                                     }
+                                }
+                                else {
+                                    if ( -1 != index( $IPv6, Email::IsEmail::STRING_DOUBLECOLON, $index + 1 ) ) {
+                                        push @{$return_status}, Email::IsEmail::RFC5322_IPV6_2X2XCOLON;
+                                    }
                                     else {
-                                        if ( $index != index( $IPv6, Email::IsEmail::STRING_DOUBLECOLON ) ) {
-                                            push @{$return_status}, Email::IsEmail::RFC5322_IPV6_2X2XCOLON;
-                                        }
-                                        else {
-                                            if ( $index == 0 || $index == ( length($IPv6) - 2 ) ) {
-                                                $max_groups++;  # RFC 4291 allows :: at the start or end of an address with 7 other groups in addition
-                                            }
-
-                                            if ( $groupCount > $max_groups ) {
-                                                push @{$return_status}, Email::IsEmail::RFC5322_IPV6_MAXGRPS;
-                                            }
-                                            elsif ( $groupCount == $max_groups ) {
-                                                push @{$return_status}, Email::IsEmail::RFC5321_IPV6DEPRECATED;  # Eliding a single "::"
-                                            }
+                                        if ( ( $index == 0 ) or ( $index == ( length($IPv6) - 2 ) ) ) {
+                                            $max_groups++;  # RFC 4291 allows :: at the start or end of an address with 7 other groups in addition
                                         }
 
-                                        # Revision 2.7: Daniel Marschall's new IPv6 testing strategy
-                                        if ( ( substr( $IPv6, 0, 1 ) eq Email::IsEmail::STRING_COLON ) &&
-                                             ( substr( $IPv6, 1,  1 ) ne Email::IsEmail::STRING_COLON ) ) {
-                                            push @{$return_status}, Email::IsEmail::RFC5322_IPV6_COLONSTRT;  # Address starts with a single colon
+                                        if ( $groupCount > $max_groups ) {
+                                            push @{$return_status}, Email::IsEmail::RFC5322_IPV6_MAXGRPS;
                                         }
-                                        elsif ( ( substr( $IPv6, -1 ) eq Email::IsEmail::STRING_COLON) &&
-                                                ( substr( $IPv6, -2, 1 ) ne Email::IsEmail::STRING_COLON ) ) {
-                                            push @{$return_status}, Email::IsEmail::RFC5322_IPV6_COLONEND;  # Address ends with a single colon
-                                        }
-                                        elsif ( scalar grep { !/^[0-9A-Fa-f]{0,4}$/ } @{$matchesIP} != 0 ) {
-                                            push @{$return_status}, Email::IsEmail::RFC5322_IPV6_BADCHAR;  # Check for unmatched characters
-                                        }
-                                        else {
-                                            push @{$return_status}, Email::IsEmail::RFC5321_ADDRESSLITERAL;
+                                        elsif ( $groupCount == $max_groups ) {
+                                            push @{$return_status}, Email::IsEmail::RFC5321_IPV6DEPRECATED;  # Eliding a single "::"
                                         }
                                     }
+                                }
+
+                                # Revision 2.7: Daniel Marschall's new IPv6 testing strategy
+                                if ( ( substr( $IPv6, 0x0, 1 ) eq Email::IsEmail::STRING_COLON ) and
+                                     ( substr( $IPv6, 1,  1 ) ne Email::IsEmail::STRING_COLON ) ) {
+                                    push @{$return_status}, Email::IsEmail::RFC5322_IPV6_COLONSTRT;  # Address starts with a single colon
+                                }
+                                elsif ( ( substr( $IPv6, -1 ) eq Email::IsEmail::STRING_COLON) and
+                                        ( substr( $IPv6, -2, 1 ) ne Email::IsEmail::STRING_COLON ) ) {
+                                    push @{$return_status}, Email::IsEmail::RFC5322_IPV6_COLONEND;  # Address ends with a single colon
+                                }
+                                elsif ( scalar(grep { !/^[0-9A-Fa-f]{0,4}$/ } @{$matchesIP}) != 0 ) {
+                                    push @{$return_status}, Email::IsEmail::RFC5322_IPV6_BADCHAR;  # Check for unmatched characters
+                                }
+                                else {
+                                    push @{$return_status}, Email::IsEmail::RFC5321_ADDRESSLITERAL;
                                 }
                             }
                         }
@@ -759,8 +761,8 @@ sub IsEmail {
                     when ([ Email::IsEmail::STRING_CR,
                             Email::IsEmail::STRING_SP,
                             Email::IsEmail::STRING_HTAB, ]) {
-                        if ( ( $token eq Email::IsEmail::STRING_CR ) &&
-                             ( ( ++$i == $raw_length ) ||
+                        if ( ( $token eq Email::IsEmail::STRING_CR ) and
+                             ( ( ++$i == $raw_length ) or
                                ( substr( $email, $i, 1 ) ne Email::IsEmail::STRING_LF ) ) ) {
                             push @{$return_status}, Email::IsEmail::ERR_CR_NO_LF;
                             break;
@@ -788,12 +790,12 @@ sub IsEmail {
                         my $ord = ord $token;
 
                         # CR, LF, SP & HTAB have already been parsed above
-                        if ( ( $ord > 127 ) || ( $ord == 0 ) ||
+                        if ( ( $ord > 127 ) or ( $ord == 0 ) or
                              ( $token eq Email::IsEmail::STRING_OPENSQBRACKET ) ) {
                             push @{$return_status}, Email::IsEmail::ERR_EXPECTING_DTEXT;  # Fatal error
                             break;
                         }
-                        elsif ( ( $ord < 33 ) || ( $ord == 127 ) ) {
+                        elsif ( ( $ord < 33 ) or ( $ord == 127 ) ) {
                             push @{$return_status}, Email::IsEmail::RFC5322_DOMLIT_OBSDTEXT;
                         }
 
@@ -825,8 +827,8 @@ sub IsEmail {
                     # It's only FWS if we include HTAB or CRLF
                     when ([ Email::IsEmail::STRING_CR,
                             Email::IsEmail::STRING_HTAB, ]) {
-                        if ( ( $token eq Email::IsEmail::STRING_CR ) &&
-                             ( ( ++$i == $raw_length ) ||
+                        if ( ( $token eq Email::IsEmail::STRING_CR ) and
+                             ( ( ++$i == $raw_length ) or
                                ( substr( $email, $i, 1 ) ne Email::IsEmail::STRING_LF ) ) ) {
                             push @{$return_status}, Email::IsEmail::ERR_CR_NO_LF;
                             break;
@@ -874,10 +876,10 @@ sub IsEmail {
                         #                       %d127              ;  white space characters
                         my $ord = ord $token;
 
-                        if ( ( $ord > 127 ) || ( $ord == 0 ) || ( $ord == 10 ) ) {
+                        if ( ( $ord > 127 ) or ( $ord == 0 ) or ( $ord == 10 ) ) {
                             push @{$return_status}, Email::IsEmail::ERR_EXPECTING_QTEXT;  # Fatal error
                         }
-                        elsif ( ( $ord < 32 ) || ( $ord == 127 ) ) {
+                        elsif ( ( $ord < 32 ) or ( $ord == 127 ) ) {
                             push @{$return_status}, Email::IsEmail::DEPREC_QTEXT;
                         }
 
@@ -919,7 +921,7 @@ sub IsEmail {
                 if ( $ord > 127 ) {
                     push @{$return_status}, Email::IsEmail::ERR_EXPECTING_QPAIR;  # Fatal error
                 }
-                elsif ( ( ( $ord < 31 ) && ( $ord != 9 ) ) || ( $ord == 127 ) ) {  # SP & HTAB are allowed
+                elsif ( ( ( $ord < 31 ) and ( $ord != 9 ) ) or ( $ord == 127 ) ) {  # SP & HTAB are allowed
                     push @{$return_status}, Email::IsEmail::DEPREC_QP;
                 }
 
@@ -980,7 +982,7 @@ sub IsEmail {
                         # space to the address wherever CFWS appears. This would result in
                         # any addr-spec that had CFWS outside a quoted string being invalid
                         # for RFC 5321.
-#                        if ( ( $context == Email::IsEmail::COMPONENT_LOCALPART ) ||
+#                        if ( ( $context == Email::IsEmail::COMPONENT_LOCALPART ) or
 #                             ( $context == Email::IsEmail::COMPONENT_DOMAIN ) ) {
 #                            $parsedata->{$context} .= Email::IsEmail::STRING_SP;
 #                            $atomlist->{$context}[$element_count] .= Email::IsEmail::STRING_SP;
@@ -996,8 +998,8 @@ sub IsEmail {
                     when ([ Email::IsEmail::STRING_CR,
                             Email::IsEmail::STRING_SP,
                             Email::IsEmail::STRING_HTAB ]) {
-                        if ( ( $token eq Email::IsEmail::STRING_CR ) &&
-                             ( ( ++$i == $raw_length ) ||
+                        if ( ( $token eq Email::IsEmail::STRING_CR ) and
+                             ( ( ++$i == $raw_length ) or
                                ( substr( $email, $i, 1 ) ne Email::IsEmail::STRING_LF ) ) ) {
                             push @{$return_status}, Email::IsEmail::ERR_CR_NO_LF;
                             break;
@@ -1026,11 +1028,11 @@ sub IsEmail {
                         #                       %d127              ;  white space characters
                         my $ord = ord $token;
 
-                        if ( ( $ord > 127 ) || ( $ord == 0) || ( $ord == 10 ) ) {
+                        if ( ( $ord > 127 ) or ( $ord == 0 ) or ( $ord == 10 ) ) {
                             push @{$return_status}, Email::IsEmail::ERR_EXPECTING_CTEXT;  # Fatal error
                             break;
                         }
-                        elsif ( ( $ord < 32 ) || ( $ord == 127 ) ) {
+                        elsif ( ( $ord < 32 ) or ( $ord == 127 ) ) {
                             push @{$return_status}, Email::IsEmail::DEPREC_CTEXT;
                         }
                     }
@@ -1066,7 +1068,7 @@ sub IsEmail {
 
                 given($token) {
                     when (Email::IsEmail::STRING_CR) {
-                        if ( ( ++$i == $raw_length ) ||
+                        if ( ( ++$i == $raw_length ) or
                              ( substr( $email, $i, 1 ) ne Email::IsEmail::STRING_LF ) ) {
                             push @{$return_status}, Email::IsEmail::ERR_CR_NO_LF;  # Fatal error
                         }
@@ -1093,7 +1095,7 @@ sub IsEmail {
                         # space to the address wherever CFWS appears. This would result in
                         # any addr-spec that had CFWS outside a quoted string being invalid
                         # for RFC 5321.
-#                        if ( ( $context == Email::IsEmail::COMPONENT_LOCALPART ) ||
+#                        if ( ( $context == Email::IsEmail::COMPONENT_LOCALPART ) or
 #                             ( $context == Email::IsEmail::COMPONENT_DOMAIN ) ) {
 #                            $parsedata->{$context} .= Email::IsEmail::STRING_SP;
 #                            $atomlist->{$context}[$element_count] .= Email::IsEmail::STRING_SP;
@@ -1182,7 +1184,7 @@ sub IsEmail {
     # Check DNS?
     my $dns_checked = 0;
 
-    if ( $checkDNS && ( Email::IsEmail::_max($return_status) < Email::IsEmail::DNSWARN ) ) {
+    if ( $checkDNS and ( Email::IsEmail::_max($return_status) < Email::IsEmail::DNSWARN ) ) {
         # http://tools.ietf.org/html/rfc5321#section-2.3.5
         #   Names that can
         #   be resolved to MX RRs or address (i.e., A or AAAA) RRs (as discussed
@@ -1220,9 +1222,6 @@ sub IsEmail {
                     push @{$return_status}, Email::IsEmail::DNSWARN_NO_RECORD;  # No usable records for the domain can be found
                 }
             }
-            else {
-                $dns_checked = 1;
-            }
         }
     }
 
@@ -1258,12 +1257,12 @@ sub IsEmail {
     #   However, a valid host name can never have the dotted-decimal
     #   form #.#.#.#, since this change does not permit the highest-level
     #   component label to start with a digit even if it is not all-numeric.
-    if ( !$dns_checked && ( Email::IsEmail::_max($return_status) < Email::IsEmail::DNSWARN ) ) {
+    if ( !$dns_checked and ( Email::IsEmail::_max($return_status) < Email::IsEmail::DNSWARN ) ) {
         if ( $element_count == 0 ) {
             push @{$return_status}, Email::IsEmail::RFC5321_TLD;
         }
 
-        if (looks_like_number(substr( $atomlist->{Email::IsEmail::COMPONENT_DOMAIN}[$element_count], 0, 1 ))) {
+        if (looks_like_number(substr( $atomlist->{Email::IsEmail::COMPONENT_DOMAIN}[$element_count], 0x0, 1 ))) {
             push @{$return_status}, Email::IsEmail::RFC5321_TLDNUMERIC;
         }
     }
