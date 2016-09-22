@@ -7,6 +7,9 @@ use Test::More;
 use Email::IsEmail qw/IsEmail/;
 
 
+my $cDNS = 0;  # do not check DNS
+my $EL = Email::IsEmail::THRESHOLD;
+
 ok( !IsEmail( '', $cDNS, $EL ), 'empty E-mail is invalid' );
 ok( Email::IsEmail::ERR_NODOMAIN == IsEmail( 'test', $cDNS, $EL ), 'test is invalid E-mail' );
 ok( Email::IsEmail::ERR_NOLOCALPART == IsEmail( '@', $cDNS, $EL ), '@ is invalid E-mail' );

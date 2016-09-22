@@ -1,5 +1,8 @@
 Revision history for Email-IsEmail
 
+3.04.4  2016-09-22/13:00
+        Fixed tests.
+
 3.04.3  2016-09-21/12:11
         Fixed POD and Perl::Critic::Policy::Perlsecret errors
         added tests for invalid E-mails, fixed IPv6 errors

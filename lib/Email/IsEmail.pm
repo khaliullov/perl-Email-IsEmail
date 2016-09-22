@@ -20,11 +20,11 @@ Email::IsEmail - Checks an email address against the following RFCs: 3696, 1123,
 
 =head1 VERSION
 
-Version 3.04.3
+Version 3.04.4
 
 =cut
 
-$VERSION = '3.04.3';
+$VERSION = '3.04.4';
 
 
 =head1 SYNOPSIS
