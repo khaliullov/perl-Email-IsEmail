@@ -1,7 +1,10 @@
 Revision history for Email-IsEmail
 
+3.04.5  2016-09-23/12:20
+        Fixed more tests: disabled policy ProhibitAccessOfPrivateData.
+
 3.04.4  2016-09-22/13:00
-        Fixed tests.
+        Fixed tests: disabled policy OTRS.
 
 3.04.3  2016-09-21/12:11
         Fixed POD and Perl::Critic::Policy::Perlsecret errors

@@ -20,11 +20,11 @@ Email::IsEmail - Checks an email address against the following RFCs: 3696, 1123,
 
 =head1 VERSION
 
-Version 3.04.4
+Version 3.04.5
 
 =cut
 
-$VERSION = '3.04.4';
+$VERSION = '3.04.5';
 
 
 =head1 SYNOPSIS
@@ -37,12 +37,16 @@ Example usage:
 
     my $valid = Email::IsEmail('test@example.org');
     ...
-    my $checkDNS = 0;
-    my $error_level = -1;  # use dafault error threshold
-    my %parse_data = ();
-    $valid = IsEmail( 'test@[127.0.0.1]', $checkDNS, $error_level \%parse_data );
-    print "Local-part: ", $parse_data{Email::IsEmail::COMPONENT_LOCALPART}, "\n";
-    print "Domain: ", $parse_data{Email::IsEmail::COMPONENT_DOMAIN}, "\n";
+    my $checkDNS    = 0;   # do not check DNS (default)
+    my $error_level = -1;  # use dafault error threshold: Email::IsEmail::THRESHOLD
+    my %parse_data  = ();  # collect E-mail components
+
+    $valid = IsEmail( 'test@[127.0.0.1]', $checkDNS, $error_level, \%parse_data );
+
+    print "Local-part: ",     $parse_data{Email::IsEmail::COMPONENT_LOCALPART}, "\n";
+    print "Domain: ",         $parse_data{Email::IsEmail::COMPONENT_DOMAIN}, "\n";
+    # only for IPv4/IPv6 addresses:
+    print "Domain literal: ", $parse_data{Email::IsEmail::COMPONENT_LITERAL}, "\n";
 
 =cut
 
@@ -183,7 +187,7 @@ and obsolete forms are not allowed)
 
                                     NB Note the difference between $errorlevel = -1 and
                                     $errorlevel = 0
-    @param array    $parsedata      If passed, returns the parsed address components
+    @param hashref  $parsedata      If passed, returns the parsed address components
 
 =back
 
@@ -1367,7 +1371,7 @@ L<http://search.cpan.org/dist/Email-IsEmail/>
     - Daniel Marschall (test schemas)
     - Umberto Salsi (PHPLint)
 
-=head1 LICENSE AND COPYRIGHT
+=head1 LICENSE
 
 This program is released under the following license: BSD
 

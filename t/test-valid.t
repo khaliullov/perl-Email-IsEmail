@@ -6,6 +6,7 @@ use warnings;
 use Test::More;
 use Email::IsEmail qw/IsEmail/;
 
+
 ok( 1 == IsEmail('prettyandsimple@example.com'), 'prettyandsimple@example.com is valid E-mail' );
 ok( 1 == IsEmail('very.common@example.com'), 'very.common@example.com is valid E-mail' );
 ok( 1 == IsEmail('disposable.style.email.with+symbol@example.com'), 'disposable.style.email.with+symbol@example.com is valid E-mail' );
