@@ -11,7 +11,7 @@ $(mkfile_dir)/Makefile: $(mkfile_dir)local/lib/perl5/Test/More.pm
 
 $(mkfile_dir)local/lib/perl5/Test/More.pm: $(mkfile_dir)local/bin/carton
 	perl -I$(mkfile_dir)local/lib/perl5 $(mkfile_dir)local/bin/carton \
-	    install --deployment
+	    install
 
 $(mkfile_dir)local/bin/carton:
 	curl -L https://cpanmin.us | perl - -l $(mkfile_dir)local Carton
