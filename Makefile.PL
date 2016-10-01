@@ -36,7 +36,6 @@ WriteMakefile(
             },
             homepage    => 'https://metacpan.org/module/Email-IsEmail',
             bugtracker  => {
-                mailto      => 'perlbug@perl.org',
                 web         => "https://rt.cpan.org/NoAuth/ReportBug.html?Queue=Email-IsEmail",
             },
         },
