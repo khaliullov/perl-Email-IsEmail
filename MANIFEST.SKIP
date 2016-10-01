@@ -21,6 +21,7 @@
 # Makemaker generated files and dirs.
 ^MANIFEST\.
 ^Makefile$
+^MYMETA
 ^blib/
 ^MakeMaker-\d
 ^pm_to_blib$
