@@ -1,5 +1,8 @@
 Revision history for Email-IsEmail
 
+3.04.8  2016-10-02/0:15
+        remove perlbug e-mail
+
 3.04.7  2016-10-01/23:37
         Excluded MYMETA.* from tarball
 
